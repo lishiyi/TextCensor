@@ -6,6 +6,8 @@ import java.util.Map;
 /**
  * Trie
  * @author Shiyi Li
+ * @date   06/29/2016
+ * @version 0.2
  */
 public class KeywordsTrieNode {
 

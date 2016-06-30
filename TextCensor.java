@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
  * Text Censor
  * @author Shiyi Li
  * @date   06/29/2016
+ * @version 0.2
  */
 public class TextCensor {
 	
@@ -32,7 +33,11 @@ public class TextCensor {
 
 		TextCensor t = new TextCensor();
 		t.init();
-		String replaced = t.replaceCensoredWords(t.readFile());
+		String input = t.readFile();
+		// Print the input file for test
+		System.out.println(input);
+		String replaced = t.replaceCensoredWords(input);
+		// Print the output file for test
 		System.out.println(replaced);
 		t.writeFile(replaced);
 	}
@@ -49,9 +54,10 @@ public class TextCensor {
 		}
 		Pattern regex = Pattern.compile("[^\\s\"',]+|\"([^\"]*)\"|'([^']*)'");
 		Matcher regexMatcher = regex.matcher(keywordsString);
+		//Put lower case for all the keywords into the set.
 		while (regexMatcher.find()) {
 		    if (regexMatcher.group(1) != null) {
-		        // Add double-quoted phrase
+		        // Add double-quoted phrase 
 		        result.add(regexMatcher.group(1).trim().toLowerCase());
 		    } else if (regexMatcher.group(2) != null) {
 		        // Add single-quoted phrase
@@ -81,12 +87,14 @@ public class TextCensor {
         KeywordsTrieNode currentNode = root;
         for (Character c : keyWord.toCharArray()) {
         	KeywordsTrieNode nextNode = currentNode.getNextNode(c);
+        	// If next character does not exist in the trie, create a new next-node.
             if (nextNode == null) {
                 nextNode = new KeywordsTrieNode(c);
                 currentNode.putNextNode(nextNode);
             }
             currentNode = nextNode;
         }
+        // Word ends, set the end flag to true.
         currentNode.setEnd(true);
     }
 	
@@ -95,11 +103,11 @@ public class TextCensor {
 	 * Initialize the Dictionary for all the keywords and phrases
 	 */
 	private void init() {
-        //读取敏感词库
+        // Create keywords set
         Set<String> keyWords = keywordsFilter(KEYWORD_STRING);
-        //初始化根节点
+        // Initialize root
         root = new KeywordsTrieNode(' ');
-        //创建敏感词
+        // Create trie
         for (String keyWord : keyWords) {
         	buildKeywordTrie(keyWord);
         }
@@ -133,9 +141,7 @@ public class TextCensor {
         } finally{
             read.close();     // Close the file
         }
-        //TODO
         System.out.println("Success to load file...");
-        System.out.println(sb);
         return sb.toString();
     }
 	
@@ -161,17 +167,20 @@ public class TextCensor {
             int end = start + 1;
             // Else, continue to search it in the trie
             while (end < text.length()) {
+            	// If it is the end of the word, add "XXXX"
                 if (startNode.isEnd()) {
                 	sb.append("XXXX");
                 	start = end - 1;
                 	break;
                 }
                 startNode = startNode.getNextNode(Character.toLowerCase(text.charAt(end)));
+                // If the character is not matched in the keywords trie, add this word.
                 if (startNode == null) {
                 	sb.append(text.substring(start, end));
                 	start = end - 1;
                     break;
                 }
+                //Else, that is, the character is matched and not the end, continue.
                 end++;
             }
         }
@@ -183,7 +192,7 @@ public class TextCensor {
      * @param input
      */
     private void writeFile(String input) {
-        
+        // Create a new file, and write the result.
         File writename = new File(OUTPUT_PATH);
         try {
 			writename.createNewFile();
